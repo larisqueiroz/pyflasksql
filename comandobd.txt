@@ -1,0 +1,17 @@
+drop table users;
+
+use dbaluguel;
+show tables;
+describe users;
+
+SELECT * FROM users;
+
+CREATE TABLE users(
+id varchar(20) NOT NULL,
+livro VARCHAR(50) NOT NULL,
+situacao varchar(20),
+rent varchar(20),
+returnadate varchar(15),
+PRIMARY KEY(id)
+)
+
