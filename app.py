@@ -1,15 +1,18 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
+import json
 from flask_mysqldb import MySQL
 app = Flask(__name__)
 
+#  configuração do banco
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = '66990609'
-app.config['MYSQL_DB'] = 'dbaluguel'
+app.config['MYSQL_PASSWORD'] = ''
+app.config['MYSQL_DB'] = 'teste'
 
 mysql = MySQL(app)
 
-@app.route('/', methods=['GET', 'POST'])
+#  cadastro de aluguel
+@app.route('/', methods=['GET','POST'])
 def index():
     if request.method == "POST":
         details = request.form
@@ -25,53 +28,42 @@ def index():
         return 'Cadastrado com sucesso.'
     return render_template('index.html')
 
-if __name__ == '__main__':
-    app.run()
-
-
-
-
-
-
-
-
-
-"""
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = '66990609'
-app.config['MYSQL_DB'] = 'db'
-
-mysql = MySQL(app)
-
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    if request.method == "POST":
-        details = request.form
-        firstName = details['fname']
-        lastName = details['lname']
+#  listar todos
+@app.route('/cads', methods=['GET'])
+def home():
+    if request.method == "GET":
         cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO MyUsers(firstName, lastName) VALUES (%s, %s)", (firstName, lastName))
+        cur.execute("SELECT * FROM users;")
+        json_string = cur.fetchall()
+        return jsonify(json_string)
+
+#  deletar cadastro pelo id
+@app.route('/cads/<string:id>', methods=['DELETE'])
+def remove_cad(id):
+    if request.method == "DELETE":
+        cur = mysql.connection.cursor()
+        sql = "DELETE FROM users WHERE id='" + id + "'"
+        cur.execute(sql)
         mysql.connection.commit()
         cur.close()
-        return 'success'
-    return render_template('index.html')
+        return "Deletado com sucesso"
+
+    else:
+        return "Cadastro nao encontrado. Tente novamente."
+
+#  editar a situação (disponivel ou alugado), o nome do solicitante e a data de devolução via id
+@app.route('/cads/<string:id>', methods=['PUT'])
+def edit_cad(id):
+    if request.method == "PUT":
+        cur = mysql.connection.cursor()
+        sql = "UPDATE users SET situacao='"+ request.get_json().get('situacao') +"', rent='" + request.get_json().get('rent') + "', returnadate='" + request.get_json().get('returnadate') +"'WHERE id='" + id + "'"
+        cur.execute(sql)
+        mysql.connection.commit()
+        cur.close()
+        return "Editado com sucesso"
+    else:
+        return "Erro ao editar. Tente novamente."
 
 
 if __name__ == '__main__':
     app.run()
-    __________________________________________________________________
-    
-    <HTML>
-<BODY bgcolor="blue">
-<form method="POST" action="">
-    <center>
-    <H1>Enter your details </H1> <br>
-    First Name <input type = "text" name= "fname" /> <br>
-    Last Name <input type = "text" name = "lname" /> <br>
-    <input type = "submit">
-    </center>
-</form>
-</BODY>
-</HTML>
-"""
